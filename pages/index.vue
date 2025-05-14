@@ -179,7 +179,7 @@ const extract = (label) => {
 };
 
 const generateCaption = () => {
- 
+  const eventMap = new Map()
   alertWarning.value = "";
   alertCaption.value = "";
 
@@ -219,12 +219,27 @@ const generateCaption = () => {
   }
 
   // Caption 3
-  let result = "";
-  if (activeEvents.length > 0) {
-    result += `Berikut adalah Detail Events dari Type ${activeEvents.join(
-      ", "
-    )} tersebut sebagai berikut :\n\n`;
+  // if (activeEvents.length > 0) {
+    //   result += `Berikut adalah Detail Events dari Type ${activeEvents.join(
+      //     ", "
+      //   )} tersebut sebagai berikut :\n\n`;
+      // }
+  for (let i = 0; i < lines.length; i += 2) {
+  const eventLine = lines[i]?.trim() || ''
+  const match = eventLine.match(/^(.+?)\s+(\d+)$/)
+
+  if (match) {
+    const eventName = match[1].trim()
+    const count = parseInt(match[2])
+    if (count > 0 && !activeEvents.includes(`*${eventName}*`)) {
+      activeEvents.push(`*${eventName}*`)
+    }
   }
+}
+let result = "";
+if (activeEvents.length > 0) {
+  result += `Berikut adalah Detail Events dari Type ${activeEvents.join(', ')} tersebut sebagai berikut :\n\n`
+}
 
   const clientType = extract("Client Type");
   const clientApp = extract("Client App");
@@ -234,22 +249,48 @@ const generateCaption = () => {
   const sourceIP = extract("Source IP");
   const status = extract("Status");
 
-  result += `Client Type : ${clientType}\nClient App : ${clientApp}\nMethod : ${method}\nTime : ${time}\nCountry : ${country}\nSource IP : ${sourceIP}\nStatus : ${status}`;
+  result += `Client Type : ${clientType}\nClient App : ${clientApp}\nMethod : ${method}\nTime : ${time}\nCountry : ${country}\nSource IP : ${sourceIP}\nStatus : BLOCKED`;
 
   caption.value = result;
   captionVisible.value = result.trim() !== "";
 
   // Caption 2
-  if (wafEvents.length > 0) {
+  // if (wafEvents.length > 0) {
+  //   wafCaption.value =
+  //     `Setelah dilakukan pengecekan pada dashboard WAF Policies dan Security Rules, ` +
+  //     `insiden anomali tersebut memicu WAF dengan jenis Incident ${wafEvents.join(
+  //       ", "
+  //     )}.`;
+  //   wafCaptionVisible.value = true;
+  // } else {
+  //   wafCaption.value = "";
+  //   wafCaptionVisible.value = false;
+  // }
+  for (let i = 0; i < lines.length; i += 2) {
+    const eventLine = lines[i]?.trim() || ''
+    const match = eventLine.match(/(.+?)\s+(\d+)/)
+
+    if (match) {
+      const eventName = match[1].trim()
+      const count = parseInt(match[2])
+      if (count > 0 && !eventMap.has(eventName)) {
+        eventMap.set(eventName, count)
+      }
+    }
+  }
+
+  const uniqueEvents = Array.from(eventMap.entries()).map(
+    ([name, count]) => `*${name}* sebanyak ${count} sessions`
+  )
+
+  if (uniqueEvents.length > 0) {
     wafCaption.value =
       `Setelah dilakukan pengecekan pada dashboard WAF Policies dan Security Rules, ` +
-      `insiden anomali tersebut memicu WAF dengan jenis Incident ${wafEvents.join(
-        ", "
-      )}.`;
-    wafCaptionVisible.value = true;
+      `insiden anomali tersebut memicu WAF dengan jenis Incident ${uniqueEvents.join(', ')}.`
+    wafCaptionVisible.value = true
   } else {
-    wafCaption.value = "";
-    wafCaptionVisible.value = false;
+    wafCaption.value = ''
+    wafCaptionVisible.value = false
   }
   // parsing IP
   const ipRegex = /(\b\d{1,3}(?:\.\d{1,3}){3}\b)/;
