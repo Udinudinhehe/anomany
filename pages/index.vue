@@ -194,7 +194,7 @@ const extract = (label) => {
   return index !== -1 && lines[index + 1] ? lines[index + 1].trim() : "-";
   
 };
-
+  
 const generateCaption = () => {
   const eventMap = new Map()
   alertWarning.value = "";
