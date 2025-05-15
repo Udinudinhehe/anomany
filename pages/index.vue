@@ -6,7 +6,7 @@
       </h1>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-inter">
         <div>
-          <label for="First Time" class="font-semibold mb-4 ">First Time</label>
+          <label for="First Time" class="font-semibold mb-4 "><i class="pi pi-clock"></i> First Time</label>
           <input
             v-model="firstTime"
             placeholder="Input Waktu Awal Kejadian"
@@ -15,7 +15,7 @@
           />
         </div>
         <div>
-          <label for="last_time" class="font-semibold mb-4">Last Time</label>
+          <label for="last_time" class="font-semibold mb-4"><i class="pi pi-clock"></i> Last Time</label>
           <input
             type="text"
             v-model="lastTime"
@@ -25,7 +25,7 @@
         </div>
       </div>
       <div class="mt-4 -z-10">
-        <h3 class="font-semibold">Pilih Rentang Waktu :</h3>
+        <h3 class="font-semibold"><i class="pi pi-sort-alt"></i> Pilih Rentang Waktu :</h3>
         <Select
           v-model="selectedTime"
           :options="timeOptions"
@@ -73,13 +73,13 @@
           @click="generateCaption"
           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded cursor-pointer mr-2"
         >
-          Generate Caption
+          <i class="pi pi-file"></i> Generate Caption
         </button>
         <button
           @click="resetForm"
           class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded cursor-pointer"
         >
-          Reset
+          <i class="pi pi-trash"></i> Reset
         </button>
       </div>
       <!-- GENERATE CAPTION -->
@@ -145,11 +145,18 @@
 <script setup>
 import { ref } from "vue";
 import "zone.js";
+import dayjs from "dayjs";
 import Panel from "primevue/panel";
 import { useToast } from "primevue/usetoast";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
+import 'primeicons/primeicons.css';
+// Day JS
+import 'dayjs/locale/id';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 
+// Insialisasi Day JS
+dayjs.extend(customParseFormat)
+dayjs.locale('id')
 // import "pandora-css/css/pandora.css";
 
 const dashboardInput = ref("");
@@ -175,7 +182,17 @@ const extract = (label) => {
   const index = lines.findIndex(
     (line) => line.trim().toLowerCase() === label.toLowerCase()
   );
+
+  const value = lines[index + 1].trim();
+
+  if (label.toLowerCase() === "website") {
+    // Ambil hanya nama domain tanpa angka di belakang
+    const match = value.match(/^([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    return match ? match[1] : "-";
+  }
+
   return index !== -1 && lines[index + 1] ? lines[index + 1].trim() : "-";
+  
 };
 
 const generateCaption = () => {
@@ -210,20 +227,23 @@ const generateCaption = () => {
     }
   });
 
-  const domain = extract("Website");
-  const date = extract("Time").split(",")[0] || "-";
-
+  const domain = extract("Website", dashboardInput.value);
+  // Formatted Time and Date
+  const rawDate = extract("Time").split(",")[0] || "-";
+  let formattedDate = rawDate;
+  try{
+    formattedDate = dayjs(rawDate, "MMM DD YYYY")
+      .locale('id')
+      .format("DD MMMM YYYY")
+  }catch(e){
+    formattedDate = rawDate;
+  }
   // Alert Caption
-  if (domain !== "-" && date !== "-") {
-    alertCaption.value = `⚠️ANOMALY TRAFFIC ALERT NOTIFICATION⚠️\n\nDomain/Website : *${domain}*\n\nHari & Tanggal : *${date}*\n\nJam : *${selectedTime.value}*\n\nUpdate alert notification anomaly traffic, pada jam *${firstTime.value} - ${lastTime.value} WIB* telah terjadi peningkatan blocking traffic requests overtime yang terjadi di domain *${domain}*.`;
+  if (domain !== "-" && rawDate !== "-") {
+    alertCaption.value = `⚠️ANOMALY TRAFFIC ALERT NOTIFICATION⚠️\n\nDomain/Website : *${domain}*\n\nHari & Tanggal : *${formattedDate}*\n\nJam : *${selectedTime.value}*\n\nUpdate alert notification anomaly traffic, pada jam *${firstTime.value} - ${lastTime.value} WIB* telah terjadi peningkatan blocking traffic requests overtime yang terjadi di domain *${domain}*.`;
   }
 
   // Caption 3
-  // if (activeEvents.length > 0) {
-    //   result += `Berikut adalah Detail Events dari Type ${activeEvents.join(
-      //     ", "
-      //   )} tersebut sebagai berikut :\n\n`;
-      // }
   for (let i = 0; i < lines.length; i += 2) {
   const eventLine = lines[i]?.trim() || ''
   const match = eventLine.match(/^(.+?)\s+(\d+)$/)
@@ -249,7 +269,16 @@ if (activeEvents.length > 0) {
   const sourceIP = extract("Source IP");
   const status = extract("Status");
 
-  result += `Client Type : ${clientType}\nClient App : ${clientApp}\nMethod : ${method}\nTime : ${time}\nCountry : ${country}\nSource IP : ${sourceIP}\nStatus : BLOCKED`;
+  // Format Tanggal
+  let formattedTime = time
+  try{
+    formattedTime = dayjs(time, 'MMM DD YYY, HH:mm:ss')
+      .locale('id')
+      .format('DD MMMM YYYY, HH:mm:ss')
+  }catch(e){
+    formattedTime = time
+  }
+  result += `Client Type : ${clientType}\nClient App : ${clientApp}\nMethod : ${method}\nTime : ${formattedTime}\nCountry : ${country}\nSource IP : ${sourceIP}\nStatus : Blocked`;
 
   caption.value = result;
   captionVisible.value = result.trim() !== "";
