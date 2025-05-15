@@ -272,7 +272,7 @@ if (activeEvents.length > 0) {
   // Format Tanggal
   let formattedTime = time
   try{
-    formattedTime = dayjs(time, 'MMM DD YYY, HH:mm:ss')
+    formattedTime = dayjs(time, 'MMM DD YYYY, HH:mm:ss')
       .locale('id')
       .format('DD MMMM YYYY, HH:mm:ss')
   }catch(e){
