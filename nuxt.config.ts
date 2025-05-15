@@ -3,6 +3,7 @@ import Lara from "@primeuix/themes/lara";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  
   app:{
     head:{
       title:"Auto Generated Caption",
@@ -12,7 +13,7 @@ export default defineNuxtConfig({
     },
   },
   modules:[
-    '@primevue/nuxt-module'
+    '@primevue/nuxt-module',
   ],
   primevue:{
     options:{
@@ -21,6 +22,7 @@ export default defineNuxtConfig({
       }
     }
   },
+ 
   compatibilityDate: '2024-11-01',
   devtools: { enabled: false },
   css:['@/assets/css/main.css'],

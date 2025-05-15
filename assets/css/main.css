@@ -12,3 +12,13 @@
     --color-danger:oklch(71.2% 0.194 13.428);
     --color-ghost:oklch(92.8% 0.006 264.531);
 }
+
+@media(prefers-color-scheme:dark){
+    html{
+        background: white !important;
+        color:black !important;
+    }
+    .p-select-label{
+        background-color: white !important;
+    }
+}
